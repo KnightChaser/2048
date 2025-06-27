@@ -1,7 +1,7 @@
 package engine
 
 const (
-	ScreenWidth  = 400
-	ScreenHeight = 400
+	ScreenWidth  = 800
+	ScreenHeight = 800
 	GridN        = 4
 )
