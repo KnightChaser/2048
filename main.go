@@ -3,17 +3,13 @@ package main
 import (
 	"log"
 
+	"2048/engine"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const (
-	screenWidth  = 400
-	screenHeight = 400
-	gridN        = 4
-)
-
 type Game struct {
-	board [gridN][gridN]int
+	board [engine.GridN][engine.GridN]int // The game board
 }
 
 func NewGame() *Game {
@@ -36,11 +32,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return screenWidth, screenHeight
+	return engine.ScreenWidth, engine.ScreenHeight
 }
 
 func main() {
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(engine.ScreenWidth, engine.ScreenHeight)
 	ebiten.SetWindowTitle("2048 Game")
 
 	if err := ebiten.RunGame(NewGame()); err != nil {
