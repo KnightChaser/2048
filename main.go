@@ -15,30 +15,37 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
-//go:embed fonts/Roboto-Regular.ttf
-var robotoTTF []byte
+//go:embed fonts/0xProto-Regular.ttf
+var zeroXProtoTTF []byte
 
 var (
-	fontFace   textv2.Face
+	// face is the base font.Face for measuring
+	face font.Face
+	// fontFace wraps face for text/v2 drawing
+	fontFace textv2.Face
+	// tileColors maps values to RGBA colors
 	tileColors map[int]color.RGBA
 )
 
 func init() {
-	// Load font
-	tt, err := opentype.Parse(robotoTTF)
+	// Load base font
+	tt, err := opentype.Parse(zeroXProtoTTF)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	goFace, err := opentype.NewFace(tt, &opentype.FaceOptions{
+	face, err = opentype.NewFace(tt, &opentype.FaceOptions{
 		Size:    32,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	fontFace = textv2.NewGoXFace(goFace)
+
+	// Wrap for text/v2
+	fontFace = textv2.NewGoXFace(face)
 
 	// Tile color palette
 	tileColors = map[int]color.RGBA{
@@ -62,17 +69,14 @@ type Game struct {
 	lastKey ebiten.Key
 }
 
-// NewGame wraps the engine.Game and initializes the game state.
+// NewGame creates a fresh game instance
 func NewGame() *Game {
-	g := &Game{
-		e: engine.NewGame(),
-	}
-
-	return g
+	return &Game{e: engine.NewGame()}
 }
 
+// Update processes input and game logic
 func (g *Game) Update() error {
-	directions := map[ebiten.Key]engine.Direction{
+	dirs := map[ebiten.Key]engine.Direction{
 		ebiten.KeyArrowLeft:  engine.Left,
 		ebiten.KeyArrowRight: engine.Right,
 		ebiten.KeyArrowUp:    engine.Up,
@@ -80,17 +84,18 @@ func (g *Game) Update() error {
 	}
 
 	moved := false
-	for key, dir := range directions {
-		if ebiten.IsKeyPressed(key) && g.lastKey != key {
-			// Only process the key if it has changed
-			movedTmp, _ := g.e.Move(dir)
-			moved = moved || movedTmp
-			g.lastKey = key
+	for key, dir := range dirs {
+		if ebiten.IsKeyPressed(key) {
+			if g.lastKey != key {
+				movedTmp, _ := g.e.Move(dir)
+				moved = moved || movedTmp
+				g.lastKey = key
+			}
+			break
 		}
-		break
 	}
 
-	// Reset lastKey when no arrow key (for 2048 game) is pressed
+	// Reset lastKey when no arrow pressed
 	if !ebiten.IsKeyPressed(ebiten.KeyArrowLeft) &&
 		!ebiten.IsKeyPressed(ebiten.KeyArrowRight) &&
 		!ebiten.IsKeyPressed(ebiten.KeyArrowUp) &&
@@ -99,19 +104,18 @@ func (g *Game) Update() error {
 	}
 
 	if moved {
-		// Add a new tile after a successful move
 		engine.SpawnTile(&g.e.Board)
 	}
 
 	return nil
 }
 
+// Draw renders the grid and tiles
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{187, 173, 160, 255})
 	tileSize := engine.ScreenWidth / engine.GridN
 	margin := 8
 
-	// Draw tiles
 	for r := 0; r < engine.GridN; r++ {
 		for c := 0; c < engine.GridN; c++ {
 			x := c*tileSize + margin
@@ -132,15 +136,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			if v != 0 {
 				s := strconv.Itoa(v)
 				w, h := textv2.Measure(s, fontFace, 0)
-				tw, th := float64(w), float64(h)
 
-				// center within the tile
-				posX := float64(x + (tileSize-int(tw))/2)
-				posY := float64(y + (tileSize-int(th))/2)
-
+				// Center text in tile
+				posX := float64(x + (tileSize-int(w))/2)
+				posY := float64(y + (tileSize-int(h))/2)
 				opts := &textv2.DrawOptions{}
 				opts.GeoM.Translate(posX, posY)
-
 				textv2.Draw(screen, s, fontFace, opts)
 			}
 		}
@@ -148,11 +149,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 // Layout sets the screen dimensions
-type Layout interface {
-	Layout(int, int) (int, int)
-}
-
-func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
+func (g *Game) Layout(_, _ int) (int, int) {
 	return engine.ScreenWidth, engine.ScreenHeight
 }
 
