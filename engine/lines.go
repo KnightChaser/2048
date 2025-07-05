@@ -27,32 +27,45 @@ func slideLine(line []int) ([]int, bool) {
 	return out, moved
 }
 
-// mergeLine merges adjacent equal tiles in a line that's already been slid.
-// Returns the merged+slid line and the total score gained.
-// e.g.) [2, 2, 4, 0] -> [4, 4, 0, 0] (score gain = 2)
-func mergeLine(line []int) ([]int, int) {
+// mergeLine merges adjacent tiles with the same value.
+// But, it does not slide the tiles.
+// e.g.) [2, 2, 4, 0] -> [4, 0, 4, 0] (scoreGain: 4)
+func mergeLine(line []int) ([]int, int, bool) {
 	n := len(line)
 	scoreGain := 0
+	merged := false
 
 	for i := 0; i < n-1; i++ {
 		if line[i] != 0 && line[i] == line[i+1] {
-			line[i] *= 2  // Merge tiles
-			line[i+1] = 0 // The second merged cell becomes zero
+			// merge
+			line[i] *= 2
+			line[i+1] = 0
 			scoreGain += line[i]
+			merged = true
+
 			i++
 		}
 	}
 
-	// Final slide to remove zeros created by merging
-	slid, _ := slideLine(line)
-	return slid, scoreGain
+	// Don't slide here, the caller will do it
+	return line, scoreGain, merged
 }
 
-// slideMergeLine does both in one shot: slide, merge, slide.
-// Returns new line, whether anything moved/merged, and score gained.
+// slideMergeLine combines sliding and merging in one step.
+// It first slides the line, then merges adjacent tiles,
+// and finally slides again to compact the line.
+// Returns the final line, a boolean indicating if any tile moved,
 func slideMergeLine(line []int) ([]int, bool, int) {
+	// 1. initial slide
 	slid, moved1 := slideLine(line)
-	merged, gain := mergeLine(slid)
-	_, moved2 := slideLine(merged)
-	return merged, (moved1 || gain > 0 || moved2), gain
+
+	// 2. merge (Without the final slide inside it)
+	merged, scoreGain, didMerge := mergeLine(slid)
+
+	// 3. final slide to compact the line
+	final, _ := slideLine(merged)
+
+	// The move is successful if the initial slide did something or
+	// if a merge happened
+	return final, (moved1 || didMerge), scoreGain
 }

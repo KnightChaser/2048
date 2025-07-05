@@ -29,23 +29,62 @@ func TestSlideLine(t *testing.T) {
 
 func TestMergeLine(t *testing.T) {
 	cases := []struct {
-		name      string
-		input     []int
-		want      []int
-		scoreGain int
+		name       string
+		input      []int // A pre-slid line
+		want       []int // The line after merging, but before the final slide
+		scoreGain  int
+		wantMerged bool
 	}{
-		{"single merge", []int{2, 2, 0, 0}, []int{4, 0, 0, 0}, 4},
-		{"double merge", []int{2, 2, 2, 2}, []int{4, 4, 0, 0}, 8},
-		{"no merge", []int{2, 4, 8, 16}, []int{2, 4, 8, 16}, 0},
-		{"merge with zero", []int{2, 0, 2, 2}, []int{4, 2, 0, 0}, 4},
+		{
+			"single merge start",
+			[]int{2, 2, 4, 8},
+			[]int{4, 0, 4, 8},
+			4,
+			true,
+		},
+		{
+			"single merge end",
+			[]int{4, 8, 2, 2},
+			[]int{4, 8, 4, 0},
+			4,
+			true,
+		},
+		{
+			"double merge",
+			[]int{2, 2, 2, 2},
+			[]int{4, 0, 4, 0}, // NOTE: becomes [4, 4, 0, 0] only AFTER a final slide
+			8,
+			true,
+		},
+		{
+			"no merge",
+			[]int{2, 4, 8, 16},
+			[]int{2, 4, 8, 16},
+			0,
+			false,
+		},
+		{
+			"no merge with zeros",
+			[]int{4, 2, 0, 0},
+			[]int{4, 2, 0, 0},
+			0,
+			false,
+		},
+		{
+			"no chain reaction merge (important!)",
+			[]int{4, 4, 8, 0},
+			[]int{8, 0, 8, 0}, // NOTE: Should not become [16, 0, 0, 0]
+			8,
+			true,
+		},
 	}
 
 	for _, c := range cases {
-		slid, _ := slideLine(c.input)
-		got, gain := mergeLine(slid)
-		if !reflect.DeepEqual(got, c.want) || gain != c.scoreGain {
-			t.Errorf("%s: mergeLine(%v) = %v, %d; want %v, %d",
-				c.name, c.input, got, gain, c.want, c.scoreGain)
+		// We no longer call slideLine here. We call mergeLine directly.
+		got, gain, merged := mergeLine(c.input)
+		if !reflect.DeepEqual(got, c.want) || gain != c.scoreGain || merged != c.wantMerged {
+			t.Errorf("%s: mergeLine(%v) = %v, %d, %v; want %v, %d, %v",
+				c.name, c.input, got, gain, merged, c.want, c.scoreGain, c.wantMerged)
 		}
 	}
 }
