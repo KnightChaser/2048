@@ -10,7 +10,6 @@ type App struct {
 	scene     Scene
 	engine    *engine.Game
 	bestScore int
-	lastKey   ebiten.Key
 }
 
 // NewApp initializes a new App instance with the initial scene set to SceneMenu.

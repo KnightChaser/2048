@@ -7,6 +7,7 @@ import (
 	"2048/engine"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	textv2 "github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
@@ -14,35 +15,26 @@ import (
 // processArrows handles arrow-key input once per press,
 // applies a move, and returns true if the board changed. (tiles moved or merged)
 func processArrows(a *App) bool {
-	directions := map[ebiten.Key]engine.Direction{
-		ebiten.KeyArrowLeft:  engine.Left,
-		ebiten.KeyArrowRight: engine.Right,
-		ebiten.KeyArrowUp:    engine.Up,
-		ebiten.KeyArrowDown:  engine.Down,
+	var direction engine.Direction
+	var keyPressed bool
+
+	// Did the user press an arrow key?
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) {
+		direction, keyPressed = engine.Left, true
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) {
+		direction, keyPressed = engine.Right, true
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
+		direction, keyPressed = engine.Up, true
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+		direction, keyPressed = engine.Down, true
 	}
 
-	moved := false
-	for key, direction := range directions {
-		if ebiten.IsKeyPressed(key) {
-			if a.lastKey != key {
-				if m, _ := a.engine.Move(direction); m {
-					moved = true
-				}
-				a.lastKey = key // remember last key pressed
-			}
-			break // only process one key at a time
+	if keyPressed {
+		if moved, _ := a.engine.Move(direction); moved {
+			return true
 		}
 	}
-
-	// Reset lastkey when no arrow keys are pressed
-	if !ebiten.IsKeyPressed(ebiten.KeyArrowLeft) &&
-		!ebiten.IsKeyPressed(ebiten.KeyArrowRight) &&
-		!ebiten.IsKeyPressed(ebiten.KeyArrowUp) &&
-		!ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		a.lastKey = 0
-	}
-
-	return moved
+	return false
 }
 
 // updatePlay handles game logic for the play scene.
@@ -50,7 +42,6 @@ func updatePlay(a *App) {
 	// Press M at any time to abandon the game and return to menu
 	if ebiten.IsKeyPressed(ebiten.KeyM) {
 		a.engine = nil
-		a.lastKey = 0 // reset last key
 		a.scene = SceneMenu
 		return
 	}

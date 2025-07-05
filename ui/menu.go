@@ -46,7 +46,6 @@ func updateMenu(a *App) {
 	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 		// Rese the engine and clear any leftover key state
 		a.engine = engine.NewGame()
-		a.lastKey = 0
 		a.scene = ScenePlay
 	}
 }
