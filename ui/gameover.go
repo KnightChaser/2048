@@ -35,28 +35,28 @@ func drawGameOver(screen *ebiten.Image, score int) {
 
 	// "Game Over" title
 	title := "Game Over"
-	tw, th := textv2.Measure(title, FontFace, 0)
+	tw, th := textv2.Measure(title, LargeFace, 0)
 	tx := (engine.ScreenWidth - int(tw)) / 2
 	ty := engine.ScreenHeight / 3
 	topts := &textv2.DrawOptions{}
 	topts.GeoM.Translate(float64(tx), float64(ty))
-	textv2.Draw(screen, title, FontFace, topts)
+	textv2.Draw(screen, title, LargeFace, topts)
 
 	// Show final score
 	scoreMsg := fmt.Sprintf("Score: %d", score)
-	sw, sh := textv2.Measure(scoreMsg, FontFace, 0)
+	sw, sh := textv2.Measure(scoreMsg, MediumFace, 0)
 	sx := (engine.ScreenWidth - int(sw)) / 2
 	sy := ty + int(th) + 20
 	sopts := &textv2.DrawOptions{}
 	sopts.GeoM.Translate(float64(sx), float64(sy))
-	textv2.Draw(screen, scoreMsg, FontFace, sopts)
+	textv2.Draw(screen, scoreMsg, MediumFace, sopts)
 
 	// Instructions
 	info := "R: Retry    M: Menu"
-	iw, _ := textv2.Measure(info, FontFace, 0)
+	iw, _ := textv2.Measure(info, MediumFace, 0)
 	ix := (engine.ScreenWidth - int(iw)) / 2
 	iy := sy + int(sh) + 30
 	iopts := &textv2.DrawOptions{}
 	iopts.GeoM.Translate(float64(ix), float64(iy))
-	textv2.Draw(screen, info, FontFace, iopts)
+	textv2.Draw(screen, info, MediumFace, iopts)
 }

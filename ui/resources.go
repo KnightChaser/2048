@@ -14,11 +14,16 @@ import (
 //go:embed fonts/0xProto-Regular.ttf
 var protoTTF []byte
 
-// FontFace is the text/v2.Face used for all UI text
-var FontFace textv2.Face
+var (
+	LargeFace  textv2.Face // big numbers, titles, etc.
+	MediumFace textv2.Face // medium numbers, small titles, etc.
+)
 
-// TileColors maps tile values to RGBA background colors
-var TileColors map[int]color.RGBA
+// TileColors maps tile values to their background and text colors.
+var TileColors map[int]struct {
+	Background color.RGBA
+	Foreground color.RGBA
+}
 
 func init() {
 	// Load the TTF
@@ -28,30 +33,50 @@ func init() {
 	}
 
 	// Create the base face (used for measuring)
-	baseFace, err := opentype.NewFace(tt, &opentype.FaceOptions{
+	const dpi = 72
+
+	largeFontBaseFace, err := opentype.NewFace(tt, &opentype.FaceOptions{
 		Size:    32,
-		DPI:     72,
+		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
-
 	if err != nil {
-		log.Fatal("creating base face:", err)
+		log.Fatal("creating base LargeFace:", err)
 	}
-	FontFace = textv2.NewGoXFace(baseFace)
 
-	// Tile color palette
-	TileColors = map[int]color.RGBA{
-		0:    {205, 193, 180, 255},
-		2:    {238, 228, 218, 255},
-		4:    {237, 224, 200, 255},
-		8:    {242, 177, 121, 255},
-		16:   {245, 149, 99, 255},
-		32:   {246, 124, 95, 255},
-		64:   {246, 94, 59, 255},
-		128:  {237, 207, 114, 255},
-		256:  {237, 204, 97, 255},
-		512:  {237, 200, 80, 255},
-		1024: {237, 197, 63, 255},
-		2048: {237, 194, 46, 255},
+	LargeFace = textv2.NewGoXFace(largeFontBaseFace)
+
+	MediumFontBaseFace, err := opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    18,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal("creating MediumFace:", err)
+	}
+
+	MediumFace = textv2.NewGoXFace(MediumFontBaseFace)
+
+	// It's good practice to define foreground (text) color along with background.
+	// Light numbers (2, 4) have dark text, darker tiles have light text.
+	fgDark := color.RGBA{119, 110, 101, 255}
+	fgLight := color.RGBA{249, 246, 242, 255}
+
+	TileColors = map[int]struct {
+		Background color.RGBA
+		Foreground color.RGBA
+	}{
+		0:    {Background: color.RGBA{205, 193, 180, 255}, Foreground: fgDark},
+		2:    {Background: color.RGBA{238, 228, 218, 255}, Foreground: fgDark},
+		4:    {Background: color.RGBA{237, 224, 200, 255}, Foreground: fgDark},
+		8:    {Background: color.RGBA{242, 177, 121, 255}, Foreground: fgLight},
+		16:   {Background: color.RGBA{245, 149, 99, 255}, Foreground: fgLight},
+		32:   {Background: color.RGBA{246, 124, 95, 255}, Foreground: fgLight},
+		64:   {Background: color.RGBA{246, 94, 59, 255}, Foreground: fgLight},
+		128:  {Background: color.RGBA{237, 207, 114, 255}, Foreground: fgLight},
+		256:  {Background: color.RGBA{237, 204, 97, 255}, Foreground: fgLight},
+		512:  {Background: color.RGBA{237, 200, 80, 255}, Foreground: fgLight},
+		1024: {Background: color.RGBA{237, 197, 63, 255}, Foreground: fgLight},
+		2048: {Background: color.RGBA{237, 194, 46, 255}, Foreground: fgLight},
 	}
 }
