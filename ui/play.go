@@ -65,12 +65,15 @@ func drawPlay(screen *ebiten.Image, g *engine.Game) {
 	// Background for the board area
 	boardBg := color.RGBA{205, 193, 180, 255}
 	vector.DrawFilledRect(screen,
-		0, 0,
-		float32(engine.ScreenWidth), float32(engine.ScreenHeight),
+		0,
+		float32(HUDHeight), // Start Y from HUD height
+		float32(engine.ScreenWidth),
+		float32(engine.ScreenHeight),
 		boardBg, false)
 
 	// Compute tile dimensions
-	tileSize := engine.ScreenWidth / engine.GridN
+	boardSize := engine.ScreenHeight - HUDHeight
+	tileSize := boardSize / engine.GridN
 	margin := 8
 	inner := tileSize - 2*margin
 
@@ -78,7 +81,7 @@ func drawPlay(screen *ebiten.Image, g *engine.Game) {
 	for r := 0; r < engine.GridN; r++ {
 		for c := 0; c < engine.GridN; c++ {
 			x := c*tileSize + margin
-			y := r*tileSize + margin
+			y := r*tileSize + margin + HUDHeight // Offset by HUD height
 			v := g.Board[r][c]
 
 			// Background color for this tile

@@ -11,6 +11,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
+const (
+	HUDHeight = 60
+)
+
 // drawHUD draws the heads-up display (HUD) at the top of the screen.
 func drawHUD(screen *ebiten.Image, score, best int) {
 	// Background bar
